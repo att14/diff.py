@@ -31,17 +31,26 @@ class BooleanDiffer(Base):
 
 class IntegerDiffer(Base):
 
+    def __init__(self, old, new):
+        super(IntegerDiffer, self).__init__(str(old), str(new))
+
     @property
     def output(self):
-        return StringDiffer(str(self.old), str(self.new)).output
+        return StringDiffer(self.old, self.new).output
 
 
 class FloatDiffer(IntegerDiffer):
     pass
 
 
-class LongDiffer(Base):
-    pass
+class LongDiffer(IntegerDiffer):
+
+    def __init__(self, old, new):
+        super(LongDiffer, self).__init__(old, new)
+
+    @property
+    def output(self):
+        return super(LongDiffer, self).output + 'L'
 
 
 class ComplexDiffer(Base):
@@ -62,11 +71,10 @@ class StringDiffer(Base):
 
     @property
     def output(self):
-        print self.matches
         for match in self.matches:
             # XXX: Need more testing around this statement.
-            #if match.size == 1 and match.a != match.b:
-            #    continue
+            if match.size == 1 and match.a != match.b:
+                continue
 
             for i in range(match.a, match.a + match.size):
                 self.highlighted[i] = True

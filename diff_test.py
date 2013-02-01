@@ -49,6 +49,13 @@ class FloatDifferAcceptanceTestCase(unittest.TestCase):
         self.assertEqual('3.<1>4529', float_diff.output)
 
 
+class LongDifferAcceptanceTestCase(unittest.TestCase):
+
+    def test_long_diff(self):
+        long_diff = diff.LongDiffer(1234567890L, 12345L)
+        self.assertEqual('12345<67890>L', long_diff.output)
+
+
 class StringAcceptanceTestCase(unittest.TestCase):
 
     def test_string_diff(self):
