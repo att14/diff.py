@@ -1,3 +1,6 @@
+from difflib import SequenceMatcher
+
+
 class Base(object):
 
     def __init__(self, old, new, color=False):
@@ -14,7 +17,7 @@ class NoneDiffer(Base):
     def output(self):
         if self.new is None:
             return str(None)
-        return '<' + (self.old) + '>'
+        return '<' + str(None) + '>'
 
 
 class BooleanDiffer(Base):
@@ -33,7 +36,7 @@ class IntegerDiffer(Base):
         return StringDiffer(str(self.old), str(self.new)).output
 
 
-class FloatDiffer(Base):
+class FloatDiffer(IntegerDiffer):
     pass
 
 
@@ -47,37 +50,35 @@ class ComplexDiffer(Base):
 
 class StringDiffer(Base):
 
-    def __init__(self, old, new):
-        def pad_input():
-            # XXX: StringAcceptanceTestCase.test_string_diff_len
-            return (self.old.ljust(len(self.new), ' '), self.new) \
-                if len(self.old) < len(self.new) \
-                else (self.old, self.new.ljust(len(self.old), ' '))
+    highlight_start = '<'
+    highlight_end = '>'
 
+    def __init__(self, old, new):
         super(StringDiffer, self).__init__(old, new)
-        self.old, self.new = pad_input()
+        self.highlighted = [None for _ in range(len(self.old))]
+        self.matches = sorted(SequenceMatcher(a=self.old,
+                                              b=self.new).get_matching_blocks(),
+                              key=lambda m: m.a)
 
     @property
     def output(self):
-        highlighted = []
-        prev_differed = False
+        print self.matches
+        for match in self.matches:
+            # XXX: Need more testing around this statement.
+            #if match.size == 1 and match.a != match.b:
+            #    continue
 
-        for char_old, char_new in zip(list(self.old), list(self.new)):
-            if char_old == char_new:
-                if prev_differed:
-                    highlighted.append('>')
-                highlighted.append(char_old)
-                prev_differed = False
+            for i in range(match.a, match.a + match.size):
+                self.highlighted[i] = True
+
+        result = []
+        for char, highlight in zip(list(self.old), self.highlighted):
+            if highlight is None:
+                result.append('<' + char + '>')
             else:
-                if not prev_differed:
-                    highlighted.append('<')
-                highlighted.append(char_old)
-                prev_differed = True
+                result.append(char)
 
-        if prev_differed:
-            highlighted.append('>')
-
-        return ''.join([char for char in highlighted])
+        return ''.join(result).replace('><', '')
 
 
 class UnicodeDiffer(Base):
